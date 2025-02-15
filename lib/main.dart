@@ -122,7 +122,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     child: WebViewAware(
                       child: WebViewX(
-                        key: ValueKey(_imageUrl), // Forces rebuild when URL changes
+                        key: ValueKey(_imageUrl),
                         onWebViewCreated: (controller) {
                           _webViewController = controller;
                         },
