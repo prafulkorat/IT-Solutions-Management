@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter WebViewX Demo',
+      title: 'Praful Korat Task',
       home: const HomePage(),
     );
   }
@@ -106,7 +106,7 @@ class _HomePageState extends State<HomePage> {
     return GestureDetector(
       onTap: _closeMenu,
       child: Scaffold(
-        appBar: AppBar(title: const Text("Image Viewer")),
+        appBar: AppBar(),
         body: Padding(
           padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
           child: Column(
