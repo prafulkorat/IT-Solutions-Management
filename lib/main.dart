@@ -15,13 +15,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-        home: const HomePage(),
+      title: 'Flutter WebViewX Demo',
+      home: const HomePage(),
     );
   }
 }
 
-/// [Widget] displaying the home page consisting of an image the the buttons.
+/// Home Page Widget.
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -29,12 +29,13 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-/// State of a [HomePage].
+/// State of HomePage.
 class _HomePageState extends State<HomePage> {
   final TextEditingController _urlController = TextEditingController();
   bool _isMenuOpen = false;
   bool _isFullScreen = false;
   String _imageUrl = '';
+  late WebViewXController _webViewController;
 
   @override
   void initState() {
@@ -54,12 +55,29 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// Update the displayed image URL.
   void _updateImage() {
     setState(() {
       _imageUrl = _urlController.text.trim();
     });
+
+    if (_webViewController != null) {
+      _webViewController.loadContent(
+        """
+        <html>
+          <body style="display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">
+            <img id="image" src="$_imageUrl" 
+                 style="max-width: 100%; max-height: 100%;" 
+                 ondblclick="window.parent.postMessage({type: 'toggle_fullscreen'}, '*')" />
+          </body>
+        </html>
+        """,
+        SourceType.html,
+      );
+    }
   }
 
+  /// Toggle fullscreen mode.
   void _toggleFullScreen() {
     js.context.callMethod('toggleFullScreen');
     setState(() {
@@ -67,12 +85,14 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// Toggle floating menu.
   void _toggleMenu() {
     setState(() {
       _isMenuOpen = !_isMenuOpen;
     });
   }
 
+  /// Close the floating menu if open.
   void _closeMenu() {
     if (_isMenuOpen) {
       setState(() {
@@ -86,7 +106,7 @@ class _HomePageState extends State<HomePage> {
     return GestureDetector(
       onTap: _closeMenu,
       child: Scaffold(
-        appBar: AppBar(),
+        appBar: AppBar(title: const Text("Image Viewer")),
         body: Padding(
           padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
           child: Column(
@@ -100,19 +120,21 @@ class _HomePageState extends State<HomePage> {
                       color: Colors.grey,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child:  _imageUrl.isEmpty
-                        ? const Center(child: Text("No image loaded"))
-                        : WebViewAware(
+                    child: WebViewAware(
                       child: WebViewX(
+                        key: ValueKey(_imageUrl), // Forces rebuild when URL changes
+                        onWebViewCreated: (controller) {
+                          _webViewController = controller;
+                        },
                         initialContent: """
-                            <html>
-                              <body style="display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">
-                                <img id="image" src="$_imageUrl" 
-                                     style="max-width: 100%; max-height: 100%;" 
-                                     ondblclick="window.parent.postMessage({type: 'toggle_fullscreen'}, '*')" />
-                              </body>
-                            </html>
-                          """,
+                        <html>
+                          <body style="display:flex; justify-content:center; align-items:center; height:100vh; margin:0;">
+                            <img id="image" src="$_imageUrl" 
+                                 style="max-width: 100%; max-height: 100%;" 
+                                 ondblclick="window.parent.postMessage({type: 'toggle_fullscreen'}, '*')" />
+                          </body>
+                        </html>
+                        """,
                         initialSourceType: SourceType.html,
                         height: double.maxFinite,
                         width: double.maxFinite,
@@ -133,10 +155,11 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(width: 10),
                   ElevatedButton(
                     onPressed: _updateImage,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 12, 0, 12),
+                    child: const Padding(
+                      padding: EdgeInsets.fromLTRB(0, 12, 0, 12),
                       child: Icon(Icons.arrow_forward),
-                    ),                  ),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 100),
